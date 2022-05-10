@@ -3,7 +3,7 @@ var game = new Phaser.Game(400, 490, Phaser.AUTO, 'game');
 var mainState = {
 
     preload: function() { 
-        game.stage.backgroundColor = '#71c5cf';
+        game.stage.backgroundColor = '#FF6A5E';
         bird = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEXSvicAAABogyUZAAAAGUlEQVR4AWP4DwYHMOgHDEDASCN6lMYV7gChf3AJ/eB/pQAAAABJRU5ErkJggg==";
         pipe = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEV0vy4AAADnrrHQAAAAGUlEQVR4AWP4DwYHMOgHDEDASCN6lMYV7gChf3AJ/eB/pQAAAABJRU5ErkJggg==";
         game.load.image('bird', bird);  
@@ -56,5 +56,48 @@ var mainState = {
 
         // Jump animation
 
-    }
-}
+    },
+    hitPipe: function() {
+        // If the bird has already hit a pipe, we have nothing to do
+        if (this.bird.alive == false)
+            return;
+            
+        // Set the alive property of the bird to false
+        this.bird.alive = false;
+
+        // Prevent new pipes from appearing
+        this.game.time.events.remove(this.timer);
+    
+        // Go through all the pipes, and stop their movement
+        this.pipes.forEachAlive(function(p){
+            p.body.velocity.x = 0;
+        }, this);
+    },
+
+    restartGame: function() {
+        game.state.start('main');
+    },
+
+    addOnePipe: function(x, y) {
+        var pipe = this.pipes.getFirstDead();
+
+        pipe.reset(x, y);
+        pipe.body.velocity.x = -200;  
+        pipe.checkWorldBounds = true;
+        pipe.outOfBoundsKill = true;
+    },
+
+    addRowOfPipes: function() {
+        var hole = Math.floor(Math.random()*5)+1;
+        
+        for (var i = 0; i < 8; i++)
+            if (i != hole && i != hole +1) 
+                this.addOnePipe(400, i*60+10);   
+    
+        this.score += 1;
+        this.labelScore.text = this.score;  
+    },
+};
+
+game.state.add('main', mainState);  
+game.state.start('main'); 
